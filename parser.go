@@ -299,6 +299,7 @@ func parse(context *ParseContext, app *Application) (err error) {
 
 	cmds := app.cmdGroup
 	ignoreDefault := context.ignoreDefault
+	noInterspersed := app.noInterspersed
 
 loop:
 	for !context.EOL() && !context.Error() {
@@ -321,7 +322,8 @@ loop:
 			}
 
 		case TokenArg:
-			if cmds.have() {
+			switch {
+			case cmds.have():
 				selectedDefault := false
 				cmd, ok := cmds.commands[token.String()]
 				if !ok {
@@ -344,8 +346,11 @@ loop:
 				if !selectedDefault {
 					context.Next()
 				}
-			} else if context.arguments.have() {
-				if app.noInterspersed {
+				if cmd.noInterspersed {
+					noInterspersed = true
+				}
+			case context.arguments.have():
+				if noInterspersed {
 					// no more flags
 					context.argsOnly = true
 				}
@@ -355,7 +360,7 @@ loop:
 				}
 				context.matchedArg(arg, token.String())
 				context.Next()
-			} else {
+			default:
 				break loop
 			}
 
@@ -392,5 +397,5 @@ loop:
 		}
 	}
 
-	return
+	return err
 }
