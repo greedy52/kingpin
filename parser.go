@@ -293,18 +293,23 @@ loop:
 
 		switch token.Type {
 		case TokenLong, TokenShort:
-			if flag, err := context.flags.parse(context); err != nil {
-				if !ignoreDefault {
-					if cmd := cmds.defaultSubcommand(); cmd != nil {
-						context.matchedCmd(cmd)
-						cmds = cmd.cmdGroup
-						break
+			if !noInterspersed || token.Value != "" {
+				if flag, err := context.flags.parse(context); err != nil {
+					if !ignoreDefault {
+						if cmd := cmds.defaultSubcommand(); cmd != nil {
+							context.matchedCmd(cmd)
+							cmds = cmd.cmdGroup
+							break
+						}
 					}
+					return err
+				} else if flag == HelpFlag {
+					ignoreDefault = true
 				}
-				return err
-			} else if flag == HelpFlag {
-				ignoreDefault = true
+				break
 			}
+			// treat it as an arg
+			fallthrough
 
 		case TokenArg:
 			switch {
