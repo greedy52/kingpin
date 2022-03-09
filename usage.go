@@ -6,8 +6,7 @@ import (
 	"go/doc"
 	"io"
 	"strings"
-
-	"github.com/alecthomas/template"
+	"text/template"
 )
 
 var (
@@ -208,6 +207,9 @@ func (a *Application) UsageForContextWithTemplate(context *ParseContext, indent 
 			return string(c)
 		},
 	}
+
+	tmpl = strings.ReplaceAll(tmpl, "}}\\\n", " -}}\n")
+
 	t, err := template.New("usage").Funcs(funcs).Parse(tmpl)
 	if err != nil {
 		return err
